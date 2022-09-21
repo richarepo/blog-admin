@@ -4,7 +4,7 @@ import { Formik } from "formik";
 import { Box, Button, Heading } from "@chakra-ui/react";
 import InputComponent from "../../common/InputComponent";
 import RichTextEditor from "../../common/RichTextEditor";
-
+ 
 const CreateNewBlog = () => {
   const handleSubmitForm = (values: any, actions: any) => {
     console.log(`values, actions`, values, actions);
