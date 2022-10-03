@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from "react";
 import {
   IconButton,
   Box,
@@ -13,18 +13,19 @@ import {
   useDisclosure,
   BoxProps,
   FlexProps,
-} from '@chakra-ui/react';
+} from "@chakra-ui/react";
 import {
   FiHome,
   FiStar,
+  FiUser,
   FiSettings,
   FiMenu,
   FiPlus,
   FiColumns,
-} from 'react-icons/fi';
-import { IconType } from 'react-icons';
-import { ReactText } from 'react';
-import { ColorModeSwitcher } from '../../ColorModeSwitcher';
+} from "react-icons/fi";
+import { IconType } from "react-icons";
+import { ReactText } from "react";
+import { ColorModeSwitcher } from "../../ColorModeSwitcher";
 
 interface LinkItemProps {
   name: string;
@@ -34,35 +35,38 @@ interface LinkItemProps {
 
 const LinkItems: Array<LinkItemProps> = [
   { name: "Home", icon: FiHome, route: "/home" },
-  { name: "Categories", icon: FiColumns, route: "/categories" },
-  { name: "New Blog", icon: FiPlus, route: "/blog/new" },
-  { name: "Favourites", icon: FiStar, route: "/blog/favourites" },
-  { name: "Settings", icon: FiSettings, route: "/settings" },
+  { name: "Author", icon: FiUser, route: "/author"},
+  { name: "Categories", icon: FiColumns, route: "/categories"},
+  { name: "New Blog", icon: FiPlus, route: "/blog"},
+  { name: "Favourites", icon: FiStar, route: "/blog/favourites"},
+  { name: "Settings", icon: FiSettings, route: "/settings"},
 ];
 
 export default function SideBar({ children }: { children: ReactNode }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
+
   return (
-    <Box minH="100vh" bg={useColorModeValue('gray.100', 'gray.900')}>
+    <Box minH="100vh" bg={useColorModeValue("gray.100", "gray.900")}>
       <SidebarContent
         onClose={() => onClose}
-        display={{ base: 'none', md: 'block' }}
+        display={{ base: "none", md: "block" }}
       />
       <Drawer
-        autoFocus={false}
+        autoFocus={true}
         isOpen={isOpen}
         placement="left"
         onClose={onClose}
         returnFocusOnClose={false}
         onOverlayClick={onClose}
-        size="full">
+        size="full"
+      >
         <DrawerContent>
           <SidebarContent onClose={onClose} />
         </DrawerContent>
       </Drawer>
       {/* mobilenav */}
-      <MobileNav display={{ base: 'flex', md: 'none' }} onOpen={onOpen} />
-      <Box ml={{ base: 0, md: 60 }} p="4">
+      <MobileNav display={{ base: "flex", md: "none" }} onOpen={onOpen} />
+      <Box ml={{ base: 0, md: 60 }} p="4" pt="0">
         {children}
       </Box>
     </Box>
@@ -97,11 +101,7 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
         </Flex>
       </Flex>
       {LinkItems.map((link) => (
-        <NavItem
-          key={link.name}
-          icon={link.icon}
-          route={link.route}
-        >
+        <NavItem key={link.name} icon={link.icon} route={link.route} >
           {link.name}
         </NavItem>
       ))}
@@ -117,7 +117,11 @@ interface NavItemProps extends FlexProps {
 
 const NavItem = ({ icon, route, children, ...rest }: NavItemProps) => {
   return (
-    <Link href={route} style={{ textDecoration: 'none' }} _focus={{ boxShadow: 'none' }}>
+    <Link
+      href={route}
+      style={{ textDecoration: "none" }}
+      _focus={{ boxShadow: "gray" }}
+    >
       <Flex
         align="center"
         p="4"
@@ -126,17 +130,19 @@ const NavItem = ({ icon, route, children, ...rest }: NavItemProps) => {
         role="group"
         cursor="pointer"
         _hover={{
-          bg: 'cyan.400',
-          color: 'white',
+          bg: "cyan.400",
+          color: "white",
         }}
-        {...rest}>
+        {...rest}
+      >
         {icon && (
           <Icon
             mr="4"
             fontSize="16"
             _groupHover={{
-              color: 'white',
+              color: "white",
             }}
+      
             as={icon}
           />
         )}
@@ -156,9 +162,9 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
       px={{ base: 4, md: 24 }}
       height="20"
       alignItems="center"
-      bg={useColorModeValue('white', 'gray.900')}
+      bg={useColorModeValue("white", "gray.900")}
       borderBottomWidth="1px"
-      borderBottomColor={useColorModeValue('gray.200', 'gray.700')}
+      borderBottomColor={useColorModeValue("gray.200", "gray.700")}
       justifyContent="flex-start"
       {...rest}>
       <IconButton
