@@ -8,7 +8,7 @@ import { SERVER_URL } from "../common/constant";
 
 const BlogContent = () => {
   const { heading } = useParams();
-  const { data, isLoading } = useQuery(
+  const { data } = useQuery(
     ["fetchAuthorById", heading],
     async () => await fetchBlogByHeading(heading)
   );
