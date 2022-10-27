@@ -1,18 +1,13 @@
-import apiClient from "../common/axiosClient";
-
+import apiClient from "../common/apiClient";
 
 export const createBlog = async (values: any) => {
-  return apiClient.post("/blog", {
-    heading: values.heading,
-    category: values.category,
-    author: values.author,
-    content: values.content,
-  });
+  return apiClient.post("/blog", values);
 };
 
-export const fetchAllBlog = async (values: any) => {
+export const fetchAllBlog = async () => {
   return apiClient.get("/blog").then((resp) => resp?.data?.data);
 };
-export const fetchBlogById = async (id:string) => {
-   return apiClient.get(`/blog/${id}`).then((resp) => resp.data);
+
+export const fetchBlogByHeading = async (heading?: string) => {
+  return apiClient.get(`/blog/${heading}`).then((resp) => resp.data.data);
 };

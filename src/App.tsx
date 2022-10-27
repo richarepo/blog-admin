@@ -6,6 +6,7 @@ import Home from "./components/home";
 import CreateNewBlog from "./components/blog/new/CreateNewBlog";
 import CreateNewCategory from "./components/category";
 import AuthorMain from "./components/author/AuthorMain";
+import BlogContent from "./components/home/BlogContent";
 
 
 export const App = () => (
@@ -13,10 +14,10 @@ export const App = () => (
     <SideBar>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/home" element={<Home />} />
+        <Route path="/blog/:heading" element={<BlogContent/>} />  
         <Route path="/categories" element={<CreateNewCategory />} />
-        <Route path="/author/*" element={<AuthorMain />} />
-        <Route path="/blog" element={<CreateNewBlog />} />
+        <Route path="/author/*" element={<AuthorMain/>} />
+        <Route path="/blog" element={<CreateNewBlog />} />   
       </Routes>
     </SideBar>
   </ChakraProvider>

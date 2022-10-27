@@ -1,5 +1,4 @@
-import apiClient from "../common/axiosClient";
-
+import apiClient from "../common/apiClient"
 
 export const fetchAllAuthor = async () => {
   return apiClient.get("/author").then((resp) => resp.data);
@@ -10,19 +9,7 @@ export const fetchAuthorById = async (id?: string) => {
 };
 
 export const createNewAuthor = async (values: any) => {
-  const first: string = values.first_name;
-  const last: string = values.last_name;
-  const author: string = first + " " + last;
-  values["author"] = author;
-  delete values.first_name;
-  delete values.last_name;
-  return apiClient.post("/author", {
-    author: values.author,
-    qualification: values.qualification,
-    phone: values.phone,
-    email: values.email,
-    avatar:values.avatar
-  });
+  return apiClient.post("/author", values);
 };
 
 export const deleteAuthorById = async (id?: string) => {

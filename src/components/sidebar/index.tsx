@@ -1,11 +1,10 @@
-import React, { ReactNode, useState } from "react";
+import { ReactNode, ReactText } from "react";
 import {
   IconButton,
   Box,
   CloseButton,
   Flex,
   Icon,
-  useColorModeValue,
   Link,
   Drawer,
   DrawerContent,
@@ -24,8 +23,8 @@ import {
   FiColumns,
 } from "react-icons/fi";
 import { IconType } from "react-icons";
-import { ReactText } from "react";
 import { ColorModeSwitcher } from "../../ColorModeSwitcher";
+import useColorManager from "../../hooks/colorManager";
 
 interface LinkItemProps {
   name: string;
@@ -34,19 +33,20 @@ interface LinkItemProps {
 }
 
 const LinkItems: Array<LinkItemProps> = [
-  { name: "Home", icon: FiHome, route: "/home" },
-  { name: "Author", icon: FiUser, route: "/author"},
-  { name: "Categories", icon: FiColumns, route: "/categories"},
-  { name: "New Blog", icon: FiPlus, route: "/blog"},
-  { name: "Favourites", icon: FiStar, route: "/blog/favourites"},
-  { name: "Settings", icon: FiSettings, route: "/settings"},
+  { name: "Home", icon: FiHome, route: "/" },
+  { name: "Author", icon: FiUser, route: "/author" },
+  { name: "Categories", icon: FiColumns, route: "/categories" },
+  { name: "New Blog", icon: FiPlus, route: "/blog" },
+  { name: "Favourites", icon: FiStar, route: "/blog/favourites" },
+  { name: "Settings", icon: FiSettings, route: "/settings" },
 ];
 
 export default function SideBar({ children }: { children: ReactNode }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { WHITE_DGRAY } = useColorManager();
 
   return (
-    <Box minH="100vh" bg={useColorModeValue("gray.100", "gray.900")}>
+    <Box minH="100vh" bg={WHITE_DGRAY}>
       <SidebarContent
         onClose={() => onClose}
         display={{ base: "none", md: "block" }}
@@ -78,11 +78,12 @@ interface SidebarProps extends BoxProps {
 }
 
 const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
+  const { WHITE_DGRAY, GRAY200_GRAY700 } = useColorManager();
   return (
     <Box
-      bg={useColorModeValue("white", "gray.900")}
+      bg={WHITE_DGRAY}
       borderRight="1px"
-      borderRightColor={useColorModeValue("gray.200", "gray.700")}
+      borderRightColor={GRAY200_GRAY700}
       w={{ base: "full", md: 60 }}
       pos="fixed"
       h="full"
@@ -100,11 +101,12 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
           />
         </Flex>
       </Flex>
-      {LinkItems.map((link) => (
-        <NavItem key={link.name} icon={link.icon} route={link.route} >
-          {link.name}
-        </NavItem>
-      ))}
+      {!!LinkItems &&
+        LinkItems.map((link) => (
+          <NavItem key={link.name} icon={link.icon} route={link.route}>
+            {link.name}
+          </NavItem>
+        ))}
     </Box>
   );
 };
@@ -142,7 +144,6 @@ const NavItem = ({ icon, route, children, ...rest }: NavItemProps) => {
             _groupHover={{
               color: "white",
             }}
-      
             as={icon}
           />
         )}
@@ -156,17 +157,19 @@ interface MobileProps extends FlexProps {
   onOpen: () => void;
 }
 const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
+  const { WHITE_DGRAY, GRAY200_GRAY700 } = useColorManager();
   return (
     <Flex
       ml={{ base: 0, md: 60 }}
       px={{ base: 4, md: 24 }}
       height="20"
       alignItems="center"
-      bg={useColorModeValue("white", "gray.900")}
+      bg={WHITE_DGRAY}
       borderBottomWidth="1px"
-      borderBottomColor={useColorModeValue("gray.200", "gray.700")}
+      borderBottomColor={GRAY200_GRAY700}
       justifyContent="flex-start"
-      {...rest}>
+      {...rest}
+    >
       <IconButton
         variant="outline"
         onClick={onOpen}

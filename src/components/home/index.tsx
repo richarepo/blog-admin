@@ -1,5 +1,5 @@
 /** @format */
-import React from "react";
+import React, { FC } from "react";
 import {
   Box,
   Heading,
@@ -11,17 +11,20 @@ import {
   Tag,
   SpaceProps,
   Container,
-  useColorModeValue,
+  Spinner
 } from "@chakra-ui/react";
 import { useQuery } from "react-query";
+
 import { fetchAllBlog } from "../api/blog";
+import { SERVER_URL } from "../common/constant";
+import useColorManager from "../../hooks/colorManager";
 
 interface IBlogTags {
   tags: Array<string>;
   marginTop?: SpaceProps["marginTop"];
 }
 
-const BlogTags: React.FC<IBlogTags> = (props) => {
+const BlogTags: FC<IBlogTags> = (props) => {
   return (
     <HStack spacing={2} marginTop={props.marginTop}>
       {props.tags.map((tag) => {
@@ -38,6 +41,7 @@ const BlogTags: React.FC<IBlogTags> = (props) => {
 interface BlogAuthorProps {
   date: Date;
   name: string;
+  image: string;
 }
 
 export const BlogAuthor: React.FC<BlogAuthorProps> = (props) => {
@@ -46,18 +50,24 @@ export const BlogAuthor: React.FC<BlogAuthorProps> = (props) => {
       <Image
         borderRadius="full"
         boxSize="40px"
-        src="https://100k-faces.glitch.me/random-image"
+        src={props.image}
         alt={`Avatar of }`}
       />
-      <Text fontWeight="medium">{props.name}</Text>
-      <Text>—</Text>
-      <Text>{props.date.toLocaleDateString()}</Text>
+      <Text fontWeight="medium">{`${
+        props.name
+      } - ${props.date.toLocaleDateString()}`}</Text>
     </HStack>
   );
 };
 
 const Home = () => {
-  const { data } = useQuery("fetchAllBlog", fetchAllBlog);
+  const { data,isLoading } = useQuery("fetchAllBlog", fetchAllBlog);
+  const { GRAY_DGRAY } = useColorManager();
+
+  const getImage = (image: any) => {
+    const blogCardImage = image.replace("size", "760_560");
+    return `${SERVER_URL}/${blogCardImage}`;
+  };
 
   return (
     <Box>
@@ -69,103 +79,89 @@ const Home = () => {
         zIndex={"5"}
         bg={"gray.100"}
         p="20px 0 20px 50px"
-        bgColor={useColorModeValue("gray.100", "gray.900")}
+        bgColor={GRAY_DGRAY}
       >
         <Heading as="h2">Blogs by Repozitory</Heading>
       </Box>
-      <Container maxW={"7xl"} p="12" >
+      <Container maxW={"7xl"} p="12">
         <Box>
           {data?.length ? (
             data?.map(
               (
-                { heading, author, category, _id, createdAt, content }: any,
+                { heading, author, category, createdAt, content, image }: any,
                 index: any
-              ) => (
-                <Box key={_id} mt={"3rem"}>
-                  <Box
-                    marginTop={{ base: "1", sm: "5" }}
-                    display="flex"
-                    flexDirection={{ base: "column", sm: "row" }}
-                    justifyContent="space-between"
-                  >
+              ) => {
+                return (
+                  <Box key={index} mt={"3rem"}>
                     <Box
+                      marginTop={{ base: "1", sm: "5" }}
                       display="flex"
-                      flex="1"
-                      marginRight="3"
-                      position="relative"
-                      alignItems="center"
+                      flexDirection={{ base: "column", sm: "row" }}
+                      justifyContent="space-between"
                     >
                       <Box
-                        width={{ base: "100%", sm: "85%" }}
-                        zIndex="2"
-                        marginLeft={{ base: "0", sm: "5%" }}
-                        marginTop="5%"
-                      >
-                        <Link
-                          textDecoration="none"
-                          _hover={{ textDecoration: "none" }}
-                        >
-                          <Image
-                            borderRadius="lg"
-                            src={
-                              "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?ixlib=rb-1.2.1&ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&auto=format&fit=crop&w=800&q=80"
-                            }
-                            alt="some good alt text"
-                            objectFit="contain"
-                          />
-                        </Link>
-                      </Box>
-                      <Box
-                        zIndex="1"
-                        width="100%"
-                        position="absolute"
-                        height="100%"
+                        display="flex"
+                        flex="1"
+                        marginRight="3"
+                        position="relative"
+                        alignItems="center"
                       >
                         <Box
-                         _dark={{
-                            bg: "radial(orange.600 1px, transparent 1px)",
-                          }}
-                          backgroundSize="20px 20px"
-                          opacity="0.4"
-                          height="100%"
+                          width={{ base: "100%", sm: "85%" }}
+                          zIndex="2"
+                          marginLeft={{ base: "0", sm: "5%" }}
+                          marginTop="5%"
+                        >
+                          <Link
+                            href={`${heading}`}
+                            isExternal
+                            textDecoration="none"
+                            _hover={{ textDecoration: "none" }}
+                          >
+                            <Image
+                              borderRadius="lg"
+                              src={getImage(image)}
+                              alt="some good alt text"
+                              objectFit="contain"
+                            />
+                          </Link>
+                        </Box>
+                      </Box>
+
+                      <Box
+                        display="flex"
+                        flex="1"
+                        flexDirection="column"
+                        justifyContent="center"
+                        marginTop={{ base: "3", sm: "0" }}
+                      >
+                        {category && <BlogTags tags={[category.category]} />}
+                        <Heading marginTop="1">
+                          <Link
+                            isExternal
+                            href={`/blog/${heading}`}
+                            textDecoration="none"
+                            _hover={{ textDecoration: "none" }}
+                          >
+                            {heading}
+                          </Link>
+                        </Heading>
+                        <Box
+                          marginTop="2"
+                          dangerouslySetInnerHTML={{ __html: content }}
                         />
+                        {!!author && (
+                          <BlogAuthor
+                            name={author.author || null}
+                            date={new Date(createdAt)}
+                            image={`${SERVER_URL}/${author.avatar}` || ""}
+                          />
+                        )}
                       </Box>
                     </Box>
-
-                    <Box
-                      display="flex"
-                      flex="1"
-                      flexDirection="column"
-                      justifyContent="center"
-                      marginTop={{ base: "3", sm: "0" }}
-                    >
-                     {category && <BlogTags tags={[category.category]} />}
-                      <Heading marginTop="1">
-                        <Link
-                          textDecoration="none"
-                          _hover={{ textDecoration: "none" }}
-                        >
-                          {heading}
-                        </Link>
-                      </Heading>
-                      <Text
-                        as="p"
-                        marginTop="2"
-                        _dark={{ bg: "gray.700" }}
-                        fontSize="lg"
-                      />
-                      <Box
-                        marginTop="2"
-                        dangerouslySetInnerHTML={{ __html: content }}
-                      />
-                     {!!author && <BlogAuthor
-                        name={author.author || null}
-                        date={new Date(createdAt)}
-                      />}
-                    </Box>
                   </Box>
-                </Box>
-              )
+                );
+              }
             )
           ) : (
             <Box>Loading....</Box>

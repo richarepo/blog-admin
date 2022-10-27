@@ -1,5 +1,5 @@
 /** @format */
-import { Box, FormErrorMessage, FormLabel, useColorModeValue } from "@chakra-ui/react";
+import { Box, FormErrorMessage, FormLabel } from "@chakra-ui/react";
 import { Field } from "formik";
 import SunEditor from "suneditor-react";
 
@@ -17,6 +17,7 @@ const CustomRichTextEditor = ({
         setDefaultStyle="font-size: 14px; height:25vh; bgColor:#fff; _dark={{bgColor:gray.900}}"
         onChange={handleChange(field.name)}
         defaultValue={values[field.name]}
+        setContents={values[field.name] || ''}
         onBlur={handleBlur(field.name)}
         setOptions={{
           height: 100,

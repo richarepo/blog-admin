@@ -11,37 +11,40 @@ import {
   FormLabel,
   FormControl,
   FormErrorMessage,
-  useToast,
-  useColorModeValue,
 } from "@chakra-ui/react";
 
-import InputComponent from "../../common/InputComponent";
-import RichTextEditor from "../../common/RichTextEditor";
+import InputComponent from "../../common/component/InputComponent";
+import RichTextEditor from "../../common/component/RichTextEditor";
 import { createBlog } from "../../api/blog";
 import { fetchAllCategory } from "../../api/category";
 import { fetchAllAuthor } from "../../api/author";
 import { queryClient } from "../../..";
+import useColorManager from "../../../hooks/colorManager";
+import { CustomToast } from "../../../hooks/toast";
+
+const INITITIAL_FORM_VALUES: any = {
+  heading: "",
+  category: "",
+  content: "",
+  author: "",
+  image: "",
+};
 
 const CreateNewBlog = () => {
   const navigate = useNavigate();
-  const toast = useToast();
+  const { WHITE_DGRAY } = useColorManager();
+  const { successToast } = CustomToast();
   const { data } = useQuery("fetchAllCategory", fetchAllCategory);
   const { data: authorDetails } = useQuery("fetchAllAuthor", fetchAllAuthor);
 
   const { mutate } = useMutation(createBlog, {
     onSuccess: () => {
-       queryClient.invalidateQueries(["fetchAllBlog"]);
-      toast({
-        position: "top-right",
-        title: `Blog has been created successfully!!`,
-        status: "success",
-        isClosable: true,
-      });
+      queryClient.invalidateQueries(["fetchAllBlogs"]);
+      successToast("Blog has been created successfully!!");
     },
-     
   });
 
-  const authorDetail = useMemo(() => {
+  const authorData = useMemo(() => {
     return authorDetails?.data || [];
   }, [authorDetails]);
 
@@ -50,28 +53,33 @@ const CreateNewBlog = () => {
   }, [data]);
 
   const handleSubmitForm = async (values: any, actions: any) => {
-    await mutate(values);
-    navigate("/home", { replace: true });
-    actions.resetForm({ heading: "", category: "", content: "", author: "" });
+    const blogData = new FormData();
+    const blogValues = ["heading", "author", "category", "image", "content"];
+    blogValues.forEach((i) => {
+      blogData.append(i, values[i]);
+    });
+    await mutate(blogData);
+    navigate("/", { replace: true });
+    actions.resetForm(INITITIAL_FORM_VALUES);
   };
 
   return (
-    <Box px={"1rem"} py={"1rem"} bgColor={useColorModeValue("#fff","gray.900")}>
+    <Box px={"1rem"} py={"1rem"} bgColor={WHITE_DGRAY}>
       <Heading as="h3" size="lg">
         Create a new blog
       </Heading>
-      <Box px={"4rem"} mt={"2rem"} >
+      <Box px={"4rem"} mt={"2rem"}>
         <Formik
-          initialValues={{
-            heading: "",
-            category: "",
-            content: "",
-            author: "",
-          }}
+          initialValues={INITITIAL_FORM_VALUES}
           onSubmit={handleSubmitForm}
         >
-          {(props) => (
-            <form onSubmit={props.handleSubmit}>
+          {(props: any) => (
+            <form
+              onSubmit={props.handleSubmit}
+              method="POST"
+              action="/blog"
+              encType="multipart/form-data"
+            >
               <Box>
                 <InputComponent
                   name="heading"
@@ -90,13 +98,14 @@ const CreateNewBlog = () => {
                         Select Category
                       </FormLabel>
                       <Select placeholder="Select Category" {...field}>
-                        {(categories || []).map(
-                          ({ category, _id }: any, index: any) => (
-                            <option key={index} value={_id}>
-                              {category}
-                            </option>
-                          )
-                        )}
+                        {!!categories &&
+                          (categories ?? []).map(
+                            ({ category, _id }: any, index: any) => (
+                              <option key={index} value={_id}>
+                                {category}
+                              </option>
+                            )
+                          )}
                       </Select>
                       <FormErrorMessage>
                         {form.errors.category}
@@ -115,20 +124,31 @@ const CreateNewBlog = () => {
                         Select Author
                       </FormLabel>
                       <Select placeholder="Select Author" {...field}>
-                        {(authorDetail || []).map(
-                          ({ author, _id }: any, index: any) => (
-                            <option key={index} value={_id}>
-                              {author}
-                            </option>
-                          )
-                        )}
+                        {!!authorData &&
+                          (authorData || []).map(
+                            ({ author, _id }: any, index: any) => (
+                              <option key={index} value={_id}>
+                                {author}
+                              </option>
+                            )
+                          )}
                       </Select>
                       <FormErrorMessage>{form.errors.author}</FormErrorMessage>
                     </FormControl>
                   )}
                 </Field>
+                <Box mt={"1.3rem"} />
+                <input
+                  name="image"
+                  type="file"
+                  placeholder={"Blog Image"}
+                  onChange={(value: any) => {
+                    props.setFieldValue("image", value.currentTarget.files[0]);
+                  }}
+                  value={props.image}
+                />
                 <Box mt={"1.5rem"} />
-                <RichTextEditor label="Enter your content" h={"100vh"}  />
+                <RichTextEditor label="Enter your content" h={"100vh"} />
               </Box>
               <Box display={"flex"} justifyContent={"right"} pb="3rem" w="100%">
                 <Button
@@ -136,6 +156,7 @@ const CreateNewBlog = () => {
                   colorScheme="teal"
                   isLoading={props.isSubmitting}
                   type="submit"
+                  disabled={!props.dirty}
                 >
                   Create
                 </Button>

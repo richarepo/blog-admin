@@ -1,26 +1,14 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Formik } from "formik";
-import { useQuery, useMutation } from "react-query";
-import {
-  Box,
-  Heading,
-  Button,
-  Flex,
-  useToast,
-  useColorModeValue,
-} from "@chakra-ui/react";
+import { useMutation } from "react-query";
+import { Box, Heading, Button, Flex } from "@chakra-ui/react";
 
-import InputComponent from "../common/InputComponent";
+import InputComponent from "../common/component/InputComponent";
 import { queryClient } from "../..";
-import {
-  fetchAllCategory,
-  createNewCategory,
-  deleteCategory,
-} from "../api/category";
+import { createNewCategory } from "../api/category";
 import AllCategoryDetails from "./AllCategoryDetails";
-
-
-const categoryHeadings = [{ Headings: "Category" }, { Headings: "Actions" }];
+import useColorManager from "../../hooks/colorManager";
+import { CustomToast } from "../../hooks/toast";
 
 const INITIAL_FORM_VALUES = {
   type: "category",
@@ -28,21 +16,15 @@ const INITIAL_FORM_VALUES = {
 };
 
 const CreateNewCategory = () => {
-  const toast = useToast();
+  const { successToast } = CustomToast();
   const [err, setErr] = useState("");
-  const color = useColorModeValue("#fff", "gray.900");
+  const { WHITE_DGRAY } = useColorManager();
 
   const fetchCategory = () => {
-    toast({
-      position: "top-right",
-      title: `Category has been created successfully!!`,
-      status: "success",
-      isClosable: true,
-    });
+    successToast("Category has been created successfully!!");
     queryClient.invalidateQueries(["fetchAllCategory"]);
   };
 
-  const { data } = useQuery("fetchAllCategory", fetchAllCategory);
   const { mutate } = useMutation(createNewCategory, {
     onSuccess: fetchCategory,
     onError: (error: any) => {
@@ -50,32 +32,13 @@ const CreateNewCategory = () => {
     },
   });
 
-  const deleted = useMutation(deleteCategory, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(["fetchAllCategory"]);
-    },
-  });
-
-  const deleteCategoryDetails = (id: string) => {
-    deleted.mutate(id);
-  };
-
-  const categories = useMemo(() => {
-    return data?.data || [];
-  }, [data]);
-
   const handleSubmitForm = async (values: any, action: any) => {
     await mutate(values);
     action.resetForm({ category: "" });
   };
 
   return (
-    <Box
-      px={"1rem"}
-      py={"1rem"}
-      bgColor={useColorModeValue("#fff", "gray.900")}
-      height="100vh"
-    >
+    <Box p={"1rem"} bgColor={WHITE_DGRAY} height="100vh">
       <Heading as="h3" size="lg">
         Create a new category
       </Heading>
@@ -83,37 +46,28 @@ const CreateNewCategory = () => {
         <Formik initialValues={INITIAL_FORM_VALUES} onSubmit={handleSubmitForm}>
           {(props) => (
             <form onSubmit={props.handleSubmit}>
-              <Flex>
+              <Flex justifyContent={"space-between"} alignItems={"flex-end"}>
                 <InputComponent
                   name="category"
                   label={"Category"}
                   placeholder={"Enter category name"}
-                  w={"100%"}
                   setError={setErr}
                 />
-                <Box display={"flex"} alignItems={"end"}>
-                  <Button
-                    colorScheme="teal"
-                    type="submit"
-                    disabled={!props.dirty}
-                  >
-                    Create
-                  </Button>
-                </Box>
+                <Button
+                  colorScheme="teal"
+                  type="submit"
+                  disabled={!props.dirty}
+                >
+                  Create
+                </Button>
               </Flex>
               {!!err && <Box color={"#FF0000"}>{err}</Box>}
-              <Box
-                display={"flex"}
-                mt={"3rem"}
-              >
-                <AllCategoryDetails
-                  head={categoryHeadings}
-                  data={categories}
-                />
-              </Box>
             </form>
           )}
         </Formik>
+        <Box display={"flex"} mt={"3rem"}>
+          <AllCategoryDetails />
+        </Box>
       </Box>
     </Box>
   );

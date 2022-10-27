@@ -1,8 +1,7 @@
-import { Box, Button, Flex, Heading, useColorModeValue, useToast, Wrap, WrapItem } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading } from "@chakra-ui/react";
 import { Formik } from "formik";
 import { useMutation, useQuery } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
 
 import { queryClient } from "../..";
 import {
@@ -10,9 +9,10 @@ import {
   fetchAuthorById,
   createNewAuthor,
 } from "../api/author";
-import InputComponent from "../common/InputComponent";
+import InputComponent from "../common/component/InputComponent";
 import formSchema from "../../validations";
-
+import useColorManager from "../../hooks/colorManager";
+import { CustomToast } from "../../hooks/toast";
 
 const INITIAL_FORM_VALUES: any = {
   type: "author",
@@ -21,87 +21,70 @@ const INITIAL_FORM_VALUES: any = {
   email: "",
   phone: "",
   qualification: "",
-  avatar: ""
-//  image:""
+  avatar: "",
 };
-
 
 const AddNewAuthor = () => {
   const { authorId } = useParams();
   const navigate = useNavigate();
-  const toast = useToast();
+  const { WHITE_DGRAY } = useColorManager();
+  const { successToast } = CustomToast();
 
-  const { data: authorDetails, isLoading: isfetching } = useQuery(
+  const { data: authorDetails } = useQuery(
     ["fetchAuthorById", authorId],
-    async () => await fetchAuthorById(authorId),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(["fetchAllAuthor"]);
-      },
-    }
+    async () => await fetchAuthorById(authorId)
   );
 
   const fetchAuthor = () => {
     queryClient.invalidateQueries(["fetchAllAuthor"]);
-    toast({
-      position: "top-right",
-      title: `Author has been created successfully!!`,
-      status: "success",
-      isClosable: true,
-    });
+    successToast("Author has been created successfully!!");
   };
 
   const { mutate } = useMutation(createNewAuthor, {
-    onSuccess: fetchAuthor
+    onSuccess: fetchAuthor,
   });
 
   const { mutate: updateAuthorData } = useMutation(
     ({ authorId, values }: any) => editAuthorById(authorId, values),
     {
-      onSuccess: (authorId: any) => {
-        toast({
-          position: "top-right",
-          title: `Author details has been updated successfully!!`,
-          status: "success",
-          isClosable: true,
-        });
+      onSuccess: () => {
+        successToast("Author details has been updated successfully!");
         queryClient.invalidateQueries(["fetchAllAuthor"]);
       },
     }
   );
-
-  const handleSubmitForm = async (values: any, action: any) => {
-    if (authorId) {
-      await updateAuthorDetails(values);
-    } else {
-      await mutate(values);
-      navigate("/author", { replace: true });
-      action.resetForm({
-        first_name: "",
-        last_name: "",
-        email: "",
-        phone: "",
-        qualification: "",
-        avatar:""
-      });
-    }
-  };
 
   const updateAuthorDetails = async (values: any) => {
     await updateAuthorData({ values, authorId });
     navigate("/author", { replace: true });
   };
 
+  const createAuthor = async (formData: any, action: any) => {
+    await mutate(formData);
+    navigate("/author", { replace: true });
+    action.resetForm(INITIAL_FORM_VALUES);
+  };
 
-
+  const handleSubmitForm = async (values: any, action: any) => {
+    const formData = new FormData(); //formdata object
+    const author = values.first_name + values.last_name;
+    values.author = author;
+    const authorValues = [
+      "author",
+      "email",
+      "phone",
+      "qualification",
+      "avatar",
+    ];
+    authorValues.forEach((i: string) => {
+      formData.append(i, values[i]);
+    });
+    if (authorId) return updateAuthorDetails(values);
+    return createAuthor(formData, action);
+  };
 
   return (
-    <Box
-      px={"2rem"}
-      py={"2rem"}
-      bgColor={useColorModeValue("#fff", "gray.900")}
-      height="100vh"
-    >
+    <Box px={"2rem"} py={"2rem"} bgColor={WHITE_DGRAY} height="100vh">
       <Heading as="h3" size="lg">
         {!!authorId ? "Update author details" : "Create new author"}
       </Heading>
@@ -127,9 +110,9 @@ const AddNewAuthor = () => {
                         label={"First Name"}
                         placeholder={"First Name"}
                       />
-                      {props.errors.first_name && props.touched.first_name ? (
+                      {props.errors.first_name && props.touched.first_name && (
                         <Box color={"#FF0000"}>{props.errors.first_name}</Box>
-                      ) : null}
+                      )}
                     </Box>
                     <InputComponent
                       name="last_name"
@@ -137,9 +120,9 @@ const AddNewAuthor = () => {
                       placeholder={"Last Name"}
                       mt={"1rem"}
                     />
-                    {props.errors.last_name && props.touched.last_name ? (
+                    {props.errors.last_name && props.touched.last_name && (
                       <Box color={"#FF0000"}>{props.errors.last_name}</Box>
-                    ) : null}
+                    )}
                     <InputComponent
                       name="qualification"
                       label={"Qualification"}
@@ -147,35 +130,40 @@ const AddNewAuthor = () => {
                       mt={"1rem"}
                     />
                     {props.errors.qualification &&
-                    props.touched.qualification ? (
-                      <Box color={"#FF0000"}>{props.errors.qualification}</Box>
-                    ) : null}
+                      props.touched.qualification && (
+                        <Box color={"#FF0000"}>
+                          {props.errors.qualification}
+                        </Box>
+                      )}
                     <InputComponent
                       name="phone"
                       label={"Phone"}
                       placeholder={"Phone"}
                       mt={"1rem"}
                     />
-                    {props.errors.phone && props.touched.phone ? (
+                    {props.errors.phone && props.touched.phone && (
                       <Box color={"#FF0000"}>{props.errors.phone}</Box>
-                    ) : null}
+                    )}
                     <InputComponent
                       name="email"
                       label={"Email"}
                       placeholder={"Email"}
                       mt={"1rem"}
                     />
-                    {props.errors.email && props.touched.email ? (
+                    {props.errors.email && props.touched.email && (
                       <Box color={"#FF0000"}>{props.errors.email}</Box>
-                    ) : null}
-                    <InputComponent
+                    )}
+                    <Box mt={"1rem"} />
+                    <input
                       name="avatar"
                       type="file"
-                      label={"Profile"}
                       placeholder={"Profile picture"}
-                      mt={"1rem"}
-                      handleChange={(value:any) => {
-                        props.setFieldValue("avatar", "sdfsdfsdfsdf");
+                      value={props.avatar}
+                      onChange={(value: any) => {
+                        props.setFieldValue(
+                          "avatar",
+                          value.currentTarget.files[0]
+                        );
                       }}
                     />
                     <Box py={"1rem"} display={"flex"} justifyContent={"right"}>

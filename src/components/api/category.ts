@@ -1,5 +1,4 @@
-import apiClient from "../common/axiosClient";
-
+import apiClient from "../common/apiClient";
 
 export const fetchAllCategory = async () => {
   return apiClient.get("/categories").then((resp) => resp.data);
@@ -11,6 +10,6 @@ export const createNewCategory = async (values: any) => {
   });
 };
 
-export const deleteCategory = async (id?:string) => {
+export const deleteCategory = async (id?: string) => {
   return apiClient.delete(`/categories/${id}`);
 };
