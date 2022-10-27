@@ -11,7 +11,6 @@ import {
   Tag,
   SpaceProps,
   Container,
-  Spinner
 } from "@chakra-ui/react";
 import { useQuery } from "react-query";
 
@@ -61,7 +60,7 @@ export const BlogAuthor: React.FC<BlogAuthorProps> = (props) => {
 };
 
 const Home = () => {
-  const { data,isLoading } = useQuery("fetchAllBlog", fetchAllBlog);
+  const { data } = useQuery("fetchAllBlog", fetchAllBlog);
   const { GRAY_DGRAY } = useColorManager();
 
   const getImage = (image: any) => {
